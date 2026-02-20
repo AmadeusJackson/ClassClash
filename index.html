@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ClassClash</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <img
+            class="app-logo"
+            src="./assets/logo.png"
+            alt="ClassClash Logo"
+          />
+          <div class="app-title-group">
+            <h1 class="app-title">ClassClash</h1>
+            <p class="app-tagline">Turn study time into friendly rivalry.</p>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav">
+          <button class="nav-item is-active" data-view="home">
+            <span class="nav-label">Home</span>
+          </button>
+          <button class="nav-item" data-view="classes">
+            <span class="nav-label">Classes</span>
+          </button>
+          <button class="nav-item" data-view="leaderboard">
+            <span class="nav-label">Leaderboard</span>
+          </button>
+          <button class="nav-item" data-view="account">
+            <span class="nav-label">Account</span>
+          </button>
+          <button class="nav-item" data-view="settings">
+            <span class="nav-label">Settings</span>
+          </button>
+        </nav>
+      </aside>
+
+      <main class="main-content" id="main-content">
+        <!-- Content rendered by app.js -->
+      </main>
+    </div>
+
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Supabase Config -->
+    <script>
+      const supabaseUrl = "https://tdohwluxhtjtzgxcvbxo.supabase.co";
+      const supabaseKey = "YOUR_PUBLIC_ANON_KEY_HERE";
+
+      const supabase = window.supabase.createClient(
+        supabaseUrl,
+        supabaseKey
+      );
+    </script>
+
+    <!-- Your App Logic -->
+    <script src="./app.js"></script>
+  </body>
+</html>
