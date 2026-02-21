@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leaderboard – ClassClash</title>
+  <style>
+    :root {
+      --bg-deep: #050b18;
+      --bg-elevated: #0b1630;
+      --bg-elevated-soft: #101b36;
+      --accent: #3ed0ff;
+      --accent-soft: rgba(62, 208, 255, 0.16);
+      --accent-strong: #00b0ff;
+      --text-main: #f9fbff;
+      --text-subtle: #a5b3d9;
+      --danger: #ff5b7a;
+      --border-subtle: #202b4a;
+      --radius-lg: 18px;
+      --radius-md: 12px;
+      --shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.45);
+      --gold: #ffd700;
+      --silver: #c0c8d8;
+      --bronze: #cd7f32;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #102046, #020712 55%);
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app-shell { display: flex; min-height: 100vh; }
+
+    /* ── Main ── */
+    .main-content {
+      flex: 1;
+      padding: 26px 32px 32px;
+      display: flex; flex-direction: column; gap: 22px;
+      background: radial-gradient(circle at top, #121a36, #020712 65%);
+    }
+
+    .page-header {
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 16px;
+    }
+
+    .page-title-group { display: flex; flex-direction: column; gap: 6px; }
+    .page-title { font-size: 1.5rem; margin: 0; }
+    .page-subtitle { margin: 0; font-size: .9rem; color: var(--text-subtle); }
+
+    .summary-badge {
+      padding: 10px 16px; border-radius: 999px;
+      background: linear-gradient(135deg, #142a5a, #0f6eb7);
+      display: inline-flex; align-items: center; gap: 10px;
+      font-size: .9rem; box-shadow: var(--shadow-soft);
+    }
+    .summary-label { color: var(--text-subtle); }
+    .summary-value { font-weight: 600; }
+
+    /* Controls */
+    .controls-row {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1; max-width: 260px;
+      padding: 8px 14px; border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: rgba(11,22,48,.9);
+      color: var(--text-main); font-size: .88rem; outline: none;
+    }
+    .search-box::placeholder { color: var(--text-subtle); }
+    .search-box:focus { border-color: var(--accent-strong); box-shadow: 0 0 0 2px rgba(62,208,255,.2); }
+
+    .btn {
+      border: none; border-radius: 999px; padding: 8px 18px;
+      font-size: .9rem; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 6px;
+      transition: background .15s, transform .08s, box-shadow .12s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #00b0ff, #54e0ff);
+      color: #02101f; font-weight: 600;
+      box-shadow: 0 14px 35px rgba(0,176,255,.45);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 18px 40px rgba(0,176,255,.55); }
+    .btn-ghost {
+      background: rgba(10,23,54,.9); color: var(--text-subtle);
+      border: 1px solid var(--border-subtle);
+    }
+    .btn-ghost:hover { background: rgba(12,29,68,.96); color: var(--text-main); }
+
+    /* ── Podium ── */
+    .podium-wrapper {
+      display: flex;
+      justify-content: center;
+      padding: 20px 0 0;
+    }
+
+    .podium-stage {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .podium-slot {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 8px;
+      position: relative;
+    }
+
+    .podium-avatar {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: var(--bg-elevated);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.8rem;
+      position: relative;
+      transition: transform .2s;
+    }
+    .podium-avatar:hover { transform: scale(1.08); }
+
+    .podium-avatar.gold   { border: 2px solid var(--gold);   box-shadow: 0 0 22px rgba(255,215,0,.45); }
+    .podium-avatar.silver { border: 2px solid var(--silver);  box-shadow: 0 0 16px rgba(192,200,216,.3); }
+    .podium-avatar.bronze { border: 2px solid var(--bronze);  box-shadow: 0 0 16px rgba(205,127,50,.3); }
+
+    .medal-pin {
+      position: absolute; bottom: -10px; right: -8px;
+      width: 34px; height: 34px;
+    }
+
+    .podium-info { text-align: center; }
+    .podium-name  { font-size: .85rem; font-weight: 700; color: var(--text-main); }
+    .podium-score { font-size: .75rem; color: var(--text-subtle); margin-top: 1px; }
+
+    .podium-block {
+      width: 100px; border-radius: 10px 10px 0 0;
+      display: flex; align-items: flex-end; justify-content: center;
+      padding-bottom: 10px;
+      font-size: 1.6rem; font-weight: 800;
+    }
+    .podium-block.gold   { height: 100px; background: linear-gradient(180deg,rgba(255,215,0,.22),rgba(255,215,0,.06)); border: 1px solid rgba(255,215,0,.35); color: var(--gold); }
+    .podium-block.silver { height: 74px;  background: linear-gradient(180deg,rgba(192,200,216,.18),rgba(192,200,216,.05)); border: 1px solid rgba(192,200,216,.25); color: var(--silver); }
+    .podium-block.bronze { height: 56px;  background: linear-gradient(180deg,rgba(205,127,50,.18),rgba(205,127,50,.05)); border: 1px solid rgba(205,127,50,.25); color: var(--bronze); }
+
+    /* ── Leaderboard Table ── */
+    .lb-card {
+      background: linear-gradient(145deg, #0b1630, #121d3b);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+    }
+
+    .lb-header {
+      display: grid;
+      grid-template-columns: 52px 1fr 100px 100px 90px;
+      padding: 12px 20px;
+      font-size: .74rem; color: var(--text-subtle);
+      text-transform: uppercase; letter-spacing: .08em;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .lb-row {
+      display: grid;
+      grid-template-columns: 52px 1fr 100px 100px 90px;
+      padding: 13px 20px;
+      align-items: center;
+      border-bottom: 1px solid rgba(32,43,74,.5);
+      transition: background .15s;
+      animation: rowIn .35s ease both;
+    }
+    .lb-row:last-child { border-bottom: none; }
+    .lb-row:hover { background: rgba(62,208,255,.04); }
+    .lb-row.r1 { background: rgba(255,215,0,.04); }
+    .lb-row.r2 { background: rgba(192,200,216,.03); }
+    .lb-row.r3 { background: rgba(205,127,50,.04); }
+
+    @keyframes rowIn {
+      from { opacity:0; transform: translateX(-10px); }
+      to   { opacity:1; transform: translateX(0); }
+    }
+
+    .rank-cell {
+      font-size: .9rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .rank-cell.g { color: var(--gold); }
+    .rank-cell.s { color: var(--silver); }
+    .rank-cell.b { color: var(--bronze); }
+    .rank-cell.n { color: var(--text-subtle); }
+
+    .player-cell { display: flex; align-items: center; gap: 10px; }
+
+    .p-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--bg-elevated);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; border: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+    .p-name { font-size: .9rem; font-weight: 600; }
+    .p-tag  { font-size: .74rem; color: var(--text-subtle); }
+
+    .cv  { font-size: .88rem; font-variant-numeric: tabular-nums; color: var(--text-subtle); }
+    .cva { color: var(--accent); font-weight: 600; }
+
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 999px; font-size: .74rem; font-weight: 600;
+    }
+    .badge.up   { background: rgba(62,208,255,.12); color: var(--accent); }
+    .badge.down { background: rgba(255,91,122,.12);  color: var(--danger); }
+    .badge.same { background: rgba(165,179,217,.08); color: var(--text-subtle); }
+
+    /* Responsive */
+    @media (max-width: 880px) {
+      .sidebar { width: 220px; padding-inline: 14px; }
+      .main-content { padding: 20px 18px 24px; }
+      .lb-header, .lb-row { grid-template-columns: 44px 1fr 90px 80px; }
+      .col-time { display: none; }
+    }
+    @media (max-width: 720px) {
+      .app-shell { flex-direction: column; }
+      .sidebar { width:100%; flex-direction:row; align-items:center; justify-content:space-between; padding:14px 16px; }
+      .sidebar-header { flex-direction:row; gap:12px; }
+      .app-logo-wrap { width:48px; height:48px; font-size:1.3rem; }
+      .sidebar-nav { flex-direction:row; flex-wrap:wrap; justify-content:flex-end; }
+      .nav-item { padding-inline:10px; }
+      .lb-header, .lb-row { grid-template-columns: 40px 1fr 72px; }
+      .col-time, .col-pts { display:none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- Main -->
+  <main class="main-content">
+
+    <div class="page-header">
+      <div class="page-title-group">
+        <h2 class="page-title">Leaderboard</h2>
+        <p class="page-subtitle">Rankings update in real time</p>
+      </div>
+      <div class="summary-badge">
+        <span class="summary-label">Season</span>
+        <span class="summary-value">Spring 2025</span>
+      </div>
+    </div>
+
+    <div class="controls-row">
+      <input class="search-box" type="text" id="searchInput" placeholder="🔍  Search player…" />
+      <button class="btn btn-primary" onclick="shuffleRanks()">⚡ Shuffle Ranks</button>
+      <button class="btn btn-ghost"   onclick="resetRanks()">↩ Reset</button>
+    </div>
+
+    <!-- Podium -->
+    <div class="podium-wrapper">
+      <div class="podium-stage" id="podium"></div>
+    </div>
+
+    <!-- Table -->
+    <div class="lb-card">
+      <div class="lb-header">
+        <div>#</div>
+        <div>Player</div>
+        <div class="col-time">Best Time</div>
+        <div class="col-pts">Points</div>
+        <div>Change</div>
+      </div>
+      <div id="lbBody"></div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  /* ── Data ─────────────────────────────────────────────── */
+  const BASE = [
+    { name:"Zara Kim",       tag:"@zkim",    emo:"🦊", time:"1:02.34", pts:4820 },
+    { name:"Marcus Webb",    tag:"@mwebb",   emo:"🐺", time:"1:04.11", pts:4610 },
+    { name:"Priya Sharma",   tag:"@priya_s", emo:"🦋", time:"1:05.88", pts:4390 },
+    { name:"Luca Bianchi",   tag:"@lucab",   emo:"🦅", time:"1:07.22", pts:4105 },
+    { name:"Aisha Diallo",   tag:"@adiallo", emo:"🐯", time:"1:09.55", pts:3870 },
+    { name:"Tom Clarke",     tag:"@tclarke", emo:"🦁", time:"1:10.90", pts:3640 },
+    { name:"Mei Lin",        tag:"@meilin",  emo:"🐼", time:"1:12.44", pts:3410 },
+    { name:"Carlos Ruiz",    tag:"@cruiz",   emo:"🐉", time:"1:14.03", pts:3180 },
+    { name:"Fatima Al-Nasri",tag:"@fatima",  emo:"🌙", time:"1:16.77", pts:2950 },
+    { name:"Jake Morrison",  tag:"@jakemo",  emo:"🐻", time:"1:18.50", pts:2720 },
+  ];
+
+  let ranked = [...BASE];
+  let prev   = {};   // name → index before last shuffle
+
+  /* ── Medal SVGs ──────────────────────────────────────── */
+  function medalSVG(place) {
+    const configs = {
+      1: { rim:'#b8860b', fill0:'#ffe566', fill1:'#b8860b', ribbon:'#ffd700', num:'1', numClr:'#7a5000' },
+      2: { rim:'#888fa0', fill0:'#e8ecf5', fill1:'#888fa0', ribbon:'#c0c8d8', num:'2', numClr:'#4a5060' },
+      3: { rim:'#8b4a1a', fill0:'#f0a050', fill1:'#8b4a1a', ribbon:'#cd7f32', num:'3', numClr:'#5a2a05' },
+    };
+    const id = `mg${place}${Math.random().toString(36).slice(2,6)}`;
+    const c  = configs[place];
+    return `
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="34" height="34">
+        <defs>
+          <radialGradient id="${id}" cx="35%" cy="30%" r="60%">
+            <stop offset="0%"   stop-color="${c.fill0}"/>
+            <stop offset="100%" stop-color="${c.fill1}"/>
+          </radialGradient>
+        </defs>
+        <!-- ribbon top -->
+        <path d="M18 20 L14 6 L22 11 L24 4 L26 11 L34 6 L30 20 Z"
+              fill="${c.ribbon}" stroke="${c.rim}" stroke-width="1"/>
+        <!-- medal circle outer -->
+        <circle cx="24" cy="32" r="13" fill="${c.rim}" stroke="${c.ribbon}" stroke-width="1.5"/>
+        <!-- medal circle inner gradient -->
+        <circle cx="24" cy="32" r="10" fill="url(#${id})"/>
+        <!-- rank number -->
+        <text x="24" y="37" text-anchor="middle"
+              font-size="12" font-weight="800" font-family="system-ui"
+              fill="${c.numClr}">${c.num}</text>
+      </svg>`;
+  }
+
+  /* ── Render Podium ───────────────────────────────────── */
+  function renderPodium() {
+    // order on screen: 2nd left, 1st centre, 3rd right
+    const slots = [
+      { idx:1, cls:'silver', blkCls:'silver' },
+      { idx:0, cls:'gold',   blkCls:'gold'   },
+      { idx:2, cls:'bronze', blkCls:'bronze' },
+    ];
+    document.getElementById('podium').innerHTML = slots.map(s => {
+      const p = ranked[s.idx];
+      if (!p) return '';
+      const rank = s.idx + 1;
+      return `
+        <div class="podium-slot">
+          <div class="podium-avatar ${s.cls}">
+            ${p.emo}
+            <div class="medal-pin">${medalSVG(rank)}</div>
+          </div>
+          <div class="podium-info">
+            <div class="podium-name">${p.name.split(' ')[0]}</div>
+            <div class="podium-score">${p.pts.toLocaleString()} pts</div>
+          </div>
+          <div class="podium-block ${s.blkCls}">${rank}</div>
+        </div>`;
+    }).join('');
+  }
+
+  /* ── Render Table ────────────────────────────────────── */
+  function renderTable(filter = '') {
+    const q = filter.toLowerCase();
+    const rows = ranked
+      .map((p,i) => ({...p, rank:i+1}))
+      .filter(p => !q || p.name.toLowerCase().includes(q) || p.tag.includes(q));
+
+    const rankCell = r => {
+      if (r===1) return `<div class="rank-cell g">${medalSVG(1)}</div>`;
+      if (r===2) return `<div class="rank-cell s">${medalSVG(2)}</div>`;
+      if (r===3) return `<div class="rank-cell b">${medalSVG(3)}</div>`;
+      return `<div class="rank-cell n">${r}</div>`;
+    };
+
+    const chg = (name, cur) => {
+      if (prev[name] === undefined) return `<span class="badge same">— —</span>`;
+      const d = prev[name] - cur;
+      if (d > 0) return `<span class="badge up">▲ ${d}</span>`;
+      if (d < 0) return `<span class="badge down">▼ ${Math.abs(d)}</span>`;
+      return `<span class="badge same">— Same</span>`;
+    };
+
+    const rCls = r => r===1?'r1':r===2?'r2':r===3?'r3':'';
+
+    document.getElementById('lbBody').innerHTML = rows.map((p, i) => `
+      <div class="lb-row ${rCls(p.rank)}" style="animation-delay:${i*.04}s">
+        ${rankCell(p.rank)}
+        <div class="player-cell">
+          <div class="p-avatar">${p.emo}</div>
+          <div>
+            <div class="p-name">${p.name}</div>
+            <div class="p-tag">${p.tag}</div>
+          </div>
+        </div>
+        <div class="cv col-time">${p.time}</div>
+        <div class="cv cva col-pts">${p.pts.toLocaleString()}</div>
+        <div>${chg(p.name, p.rank-1)}</div>
+      </div>`).join('');
+  }
+
+  function render(f='') { renderPodium(); renderTable(f); }
+
+  /* ── Shuffle ─────────────────────────────────────────── */
+  function shuffleRanks() {
+    ranked.forEach((p,i) => { prev[p.name] = i; });
+    for (let i = ranked.length-1; i > 0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
+      [ranked[i],ranked[j]] = [ranked[j],ranked[i]];
+    }
+    render(document.getElementById('searchInput').value);
+  }
+
+  function resetRanks() {
+    prev   = {};
+    ranked = [...BASE];
+    render();
+  }
+
+  document.getElementById('searchInput').addEventListener('input', e => renderTable(e.target.value));
+
+  render();
+</script>
+</body>
+</html>
